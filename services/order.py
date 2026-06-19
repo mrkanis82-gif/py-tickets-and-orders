@@ -3,7 +3,6 @@ from django.db import transaction
 from django.db.models import QuerySet
 
 from db.models import Order, Ticket
-User = get_user_model()
 
 
 @transaction.atomic
@@ -12,18 +11,10 @@ def create_order(
         username: str,
         date: str = None
 ) -> Order:
-    user = User.objects.get(username=username)
-
+    user = get_user_model().objects.get(username=username)
+    order = Order.objects.create(user=user)
     if date:
-        order = Order.objects.create(
-            user=user,
-            created_at=date,
-        )
-    else:
-        order = Order.objects.create(
-            user=user,
-        )
-
+        Order.objects.filter(pk=order.pk).update(created_at=date)
     for ticket_data in tickets:
         Ticket.objects.create(
             row=ticket_data["row"],
